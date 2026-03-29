@@ -43,7 +43,7 @@
         }
     }"
 >
-    <div class="bg-surface-raised p-6">
+    <div class="bg-surface-raised p-6" wire:poll.5s="syncState">
         <div class="text-center mb-6">
             <div class="text-7xl font-mono tabular-nums tracking-tight" x-text="formatted">00:00:00</div>
         </div>

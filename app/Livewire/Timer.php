@@ -61,6 +61,30 @@ class Timer extends Component
         $this->dispatch('entry-stopped');
     }
 
+    public function syncState(): void
+    {
+        $entry = Auth::user()->timeEntries()
+            ->whereNull('stopped_at')
+            ->first();
+
+        if ($entry && !$this->isRunning) {
+            // Timer was started externally (API, another device)
+            $this->runningEntryId = $entry->id;
+            $this->isRunning = true;
+            $this->description = $entry->description ?? '';
+            $this->vectorId = $entry->vector_id;
+            $this->dispatch('timer-started', startedAt: (int) $entry->started_at->timestamp);
+        } elseif (!$entry && $this->isRunning) {
+            // Timer was stopped externally (API, another device)
+            $this->runningEntryId = null;
+            $this->isRunning = false;
+            $this->description = '';
+            $this->vectorId = null;
+            $this->dispatch('timer-stopped');
+            $this->dispatch('entry-stopped');
+        }
+    }
+
     public function updateDescription(): void
     {
         if (!$this->runningEntryId) {

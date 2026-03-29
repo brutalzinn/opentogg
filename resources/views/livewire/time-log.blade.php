@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.5s>
     <h2 class="text-xl font-semibold mb-4">{{ __('app.time_log_title') }}</h2>
 
     @forelse($entries as $entry)
