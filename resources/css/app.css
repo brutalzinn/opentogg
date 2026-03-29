@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --color-surface: #121212;
+    --color-surface-raised: #1E1E1E;
+    --color-surface-overlay: #2C2C2C;
+    --color-text-primary: #E0E0E0;
+    --color-text-secondary: #A0A0A0;
+    --color-accent: #BB86FC;
+    --color-accent-hover: #CE9FFC;
+    --color-danger: #CF6679;
+    --color-success: #03DAC6;
+}

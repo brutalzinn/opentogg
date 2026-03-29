@@ -1,0 +1,863 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "OpenTogg API",
+        "description": "Time tracking REST API. Authenticate with a Bearer token created in Settings.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api/v1",
+            "description": "API v1"
+        }
+    ],
+    "paths": {
+        "/tags": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "List all tags",
+                "operationId": "566a70c4a8ca7c7dd9a6d666f64728a6",
+                "responses": {
+                    "200": {
+                        "description": "List of tags"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Create a tag",
+                "operationId": "c2812b6e11418dc90bfd41147c2c78c9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "urgent"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tag created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/tags/{id}": {
+            "get": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get a tag",
+                "operationId": "ae297f491633fb2505eef3f3018bffd5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tag external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag details"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update a tag",
+                "operationId": "41d027b67a1dbcae41406e06a4333598",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tag external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tag updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Delete a tag",
+                "operationId": "20ff72ee52cc57bcbdf81b4fdf09ed8f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tag external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Tag deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/time-entries": {
+            "get": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "List completed time entries",
+                "operationId": "678173875d6a18f465e1c010fd87f2b0",
+                "parameters": [
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "description": "Filter from date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "description": "Filter to date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page (1-100, default 50)",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated time entries"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "Start a new timer",
+                "description": "Creates a new time entry and starts the timer. Stops any currently running timer.",
+                "operationId": "dd393a1b73800a04e0276e2700b67da9",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Working on feature X",
+                                        "nullable": true
+                                    },
+                                    "vector_id": {
+                                        "description": "Vector external_id",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Timer started"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/time-entries/{id}": {
+            "get": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "Get a time entry",
+                "operationId": "9e5f5fef27fd43dc2844b28c7aef100b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Time entry external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Time entry details"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "Update a time entry",
+                "operationId": "6faac3614331e14199c56e544ad8b383",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Time entry external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "vector_id": {
+                                        "description": "Vector external_id",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "tag_ids": {
+                                        "description": "Tag external_ids",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Time entry updated"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "Delete a time entry",
+                "operationId": "d32390c976b1223acef9bfcabe615e73",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Time entry external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Time entry deleted"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/time-entries/current": {
+            "get": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "Get the currently running timer",
+                "operationId": "e409b4947153e253213bc2767acfa525",
+                "responses": {
+                    "200": {
+                        "description": "Current timer status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "running": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/time-entries/current/stop": {
+            "patch": {
+                "tags": [
+                    "Time Entries"
+                ],
+                "summary": "Stop the running timer",
+                "operationId": "4f42cce29dca6456866a862f6b43bb62",
+                "responses": {
+                    "200": {
+                        "description": "Timer stopped"
+                    },
+                    "404": {
+                        "description": "No running timer"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/vectors": {
+            "get": {
+                "tags": [
+                    "Vectors"
+                ],
+                "summary": "List all vectors",
+                "operationId": "1fae4fe35ac174e13dfda3e02c68c6f3",
+                "responses": {
+                    "200": {
+                        "description": "List of vectors"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Vectors"
+                ],
+                "summary": "Create a vector",
+                "operationId": "e3059ddc85dffc5939f8c4c2eba2dcab",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Work"
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "#BB86FC"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Vector created"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/vectors/{id}": {
+            "get": {
+                "tags": [
+                    "Vectors"
+                ],
+                "summary": "Get a vector",
+                "operationId": "401506b6856fbe2ca1c2402b23c31e34",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Vector external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vector details"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Vectors"
+                ],
+                "summary": "Update a vector",
+                "operationId": "deebcf69141015daa3f65ec949a97ead",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Vector external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "#BB86FC"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vector updated"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Vectors"
+                ],
+                "summary": "Delete a vector",
+                "operationId": "b43073e6b31bef5b7dc192626f220559",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Vector external_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Vector deleted"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/export": {
+            "get": {
+                "tags": [
+                    "Data Portability"
+                ],
+                "summary": "Export all user data",
+                "description": "Returns all vectors, tags, and time entries as JSON for backup or migration.",
+                "operationId": "b3354398c5619b834abe2d042b6daf73",
+                "responses": {
+                    "200": {
+                        "description": "Full data export",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "version": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "exported_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "vectors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "time_entries": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/import": {
+            "post": {
+                "tags": [
+                    "Data Portability"
+                ],
+                "summary": "Import user data",
+                "description": "Import vectors, tags, and time entries. Uses external_id for upsert — safe for syncing between instances.",
+                "operationId": "07a4385b09486b898c987f1919dcb4ee",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "version"
+                                ],
+                                "properties": {
+                                    "version": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "vectors": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "external_id",
+                                                "name"
+                                            ],
+                                            "properties": {
+                                                "external_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "color": {
+                                                    "type": "string",
+                                                    "example": "#6B7280"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "external_id",
+                                                "name"
+                                            ],
+                                            "properties": {
+                                                "external_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "time_entries": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "external_id",
+                                                "started_at"
+                                            ],
+                                            "properties": {
+                                                "external_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "vector_external_id": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "tag_external_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "started_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "stopped_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Import complete",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "imported": {
+                                            "properties": {
+                                                "vectors": {
+                                                    "type": "integer"
+                                                },
+                                                "tags": {
+                                                    "type": "integer"
+                                                },
+                                                "time_entries": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Tags",
+            "description": "Tags"
+        },
+        {
+            "name": "Time Entries",
+            "description": "Time Entries"
+        },
+        {
+            "name": "Vectors",
+            "description": "Vectors"
+        },
+        {
+            "name": "Data Portability",
+            "description": "Data Portability"
+        }
+    ]
+}
