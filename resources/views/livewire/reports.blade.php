@@ -1,5 +1,5 @@
 <div>
-    {{-- GitHub-style activity heatmap (responsive: no horizontal scroll) --}}
+    {{-- GitHub-style activity heatmap (scrollable on mobile, fits on desktop) --}}
     <div class="bg-surface-raised p-3 sm:p-4 mb-4 rounded-xl"
         x-data="{
             maxHours: @js($heatmap['maxHours']),
@@ -20,65 +20,67 @@
             $monthPositions = $heatmap['monthLabels'];
         @endphp
 
-        {{-- Heatmap grid: uses CSS grid that scales cell size to fit viewport --}}
-        <div class="w-full" style="--cols: {{ $totalWeeks }}; --label-w: 24px;">
-            {{-- Month labels --}}
-            <div class="flex text-text-secondary text-[10px] sm:text-xs" style="padding-left: var(--label-w);">
-                @foreach($monthPositions as $i => $ml)
-                    @php
-                        $nextWeek = isset($monthPositions[$i + 1]) ? $monthPositions[$i + 1]['weekIndex'] : $totalWeeks;
-                        $span = $nextWeek - $ml['weekIndex'];
-                        $pct = ($span / $totalWeeks) * 100;
-                    @endphp
-                    <span style="width: {{ $pct }}%; min-width: 0;">{{ $ml['label'] }}</span>
-                @endforeach
-            </div>
-
-            <div class="flex gap-0">
-                {{-- Day-of-week labels --}}
-                <div class="flex flex-col shrink-0" style="width: var(--label-w);">
-                    @foreach(['', 'M', '', 'W', '', 'F', ''] as $label)
-                        <div class="text-text-secondary text-[10px] sm:text-xs flex items-center" style="aspect-ratio: 1; margin-bottom: 1px;">{{ $label }}</div>
+        {{-- Scrollable container on mobile, full-width grid on desktop --}}
+        <div class="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible" style="--cell: 11px; --gap: 2px; --label-w: 24px;">
+            <div class="sm:w-full" style="min-width: calc(var(--label-w) + (var(--cell) + var(--gap)) * {{ $totalWeeks }});">
+                {{-- Month labels --}}
+                <div class="flex text-text-secondary text-[10px] sm:text-xs" style="padding-left: var(--label-w);">
+                    @foreach($monthPositions as $i => $ml)
+                        @php
+                            $nextWeek = isset($monthPositions[$i + 1]) ? $monthPositions[$i + 1]['weekIndex'] : $totalWeeks;
+                            $span = $nextWeek - $ml['weekIndex'];
+                            $pct = ($span / $totalWeeks) * 100;
+                        @endphp
+                        <span style="width: {{ $pct }}%; min-width: 0;">{{ $ml['label'] }}</span>
                     @endforeach
                 </div>
 
-                {{-- Weeks grid: percentage-based widths --}}
-                <div class="flex-1 grid" style="grid-template-columns: repeat({{ $totalWeeks }}, 1fr); gap: 1px;">
-                    @foreach($heatmap['weeks'] as $week)
-                        <div class="flex flex-col" style="gap: 1px;">
-                            @if($loop->first && $week[0]['day'] > 0)
-                                @for($i = 0; $i < $week[0]['day']; $i++)
-                                    <div style="aspect-ratio: 1;"></div>
-                                @endfor
-                            @endif
+                <div class="flex gap-0">
+                    {{-- Day-of-week labels (sticky on mobile so they stay visible while scrolling) --}}
+                    <div class="flex flex-col shrink-0 sticky left-3 sm:static z-10 bg-surface-raised" style="width: var(--label-w);">
+                        @foreach(['', 'M', '', 'W', '', 'F', ''] as $label)
+                            <div class="text-text-secondary text-[10px] sm:text-xs flex items-center justify-center" style="height: var(--cell); margin-bottom: var(--gap);">{{ $label }}</div>
+                        @endforeach
+                    </div>
 
-                            @foreach($week as $day)
-                                <div
-                                    class="rounded-[1px] sm:rounded-sm"
-                                    style="aspect-ratio: 1;"
-                                    :style="{ backgroundColor: getColor({{ $day['hours'] }}) }"
-                                    title="{{ $day['label'] }}"
-                                ></div>
-                            @endforeach
+                    {{-- Weeks grid --}}
+                    <div class="flex-1 grid" style="grid-template-columns: repeat({{ $totalWeeks }}, minmax(var(--cell), 1fr)); gap: var(--gap);">
+                        @foreach($heatmap['weeks'] as $week)
+                            <div class="flex flex-col" style="gap: var(--gap);">
+                                @if($loop->first && $week[0]['day'] > 0)
+                                    @for($i = 0; $i < $week[0]['day']; $i++)
+                                        <div style="height: var(--cell);"></div>
+                                    @endfor
+                                @endif
 
-                            @if($loop->last)
-                                @for($i = count($week) + ($loop->first && $week[0]['day'] > 0 ? $week[0]['day'] : 0); $i < 7; $i++)
-                                    <div style="aspect-ratio: 1;"></div>
-                                @endfor
-                            @endif
-                        </div>
-                    @endforeach
+                                @foreach($week as $day)
+                                    <div
+                                        class="rounded-[2px]"
+                                        style="height: var(--cell); aspect-ratio: 1;"
+                                        :style="{ backgroundColor: getColor({{ $day['hours'] }}) }"
+                                        title="{{ $day['label'] }}"
+                                    ></div>
+                                @endforeach
+
+                                @if($loop->last)
+                                    @for($i = count($week) + ($loop->first && $week[0]['day'] > 0 ? $week[0]['day'] : 0); $i < 7; $i++)
+                                        <div style="height: var(--cell);"></div>
+                                    @endfor
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
-            {{-- Legend --}}
-            <div class="flex items-center gap-1 sm:gap-2 mt-2 justify-end">
-                <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_less') }}</span>
-                @foreach(['#161B22', '#3B2667', '#6B3FA0', '#9B6DD7', '#BB86FC'] as $color)
-                    <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-[1px] sm:rounded-sm" style="background-color: {{ $color }};"></div>
-                @endforeach
-                <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_more') }}</span>
-            </div>
+            {{-- Legend (outside scroll area so it's always visible) --}}
+        </div>
+        <div class="flex items-center gap-1 sm:gap-2 mt-2 justify-end">
+            <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_less') }}</span>
+            @foreach(['#161B22', '#3B2667', '#6B3FA0', '#9B6DD7', '#BB86FC'] as $color)
+                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-[2px]" style="background-color: {{ $color }};"></div>
+            @endforeach
+            <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_more') }}</span>
         </div>
     </div>
 
