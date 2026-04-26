@@ -19,6 +19,16 @@ return [
 
     'entry_delete' => 'Delete',
     'entry_delete_confirm' => 'Delete this entry?',
+    'entry_edit_start' => 'Start time',
+    'entry_edit_end' => 'End time',
+    'entry_save' => 'Save',
+    'entry_cancel' => 'Cancel',
+
+    'manual_entry_title' => 'Add time entry',
+    'manual_entry_start' => 'Start time',
+    'manual_entry_end' => 'End time',
+    'manual_entry_save' => 'Save entry',
+    'manual_entry_cancel' => 'Cancel',
 
     'vectors_title' => 'Vectors',
     'vector_name' => 'Name',

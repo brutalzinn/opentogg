@@ -57,7 +57,6 @@ class Reports extends Component
             $dailyHours[$dayKey] = ($dailyHours[$dayKey] ?? 0) + $seconds / 3600;
         }
 
-        // Build weeks array (columns) with 7 days each (rows = Mon-Sun)
         $weeks = [];
         $monthLabels = [];
         $cursor = $start->copy();
@@ -65,7 +64,7 @@ class Reports extends Component
         $lastMonth = null;
 
         while ($cursor->lte($end)) {
-            $dayOfWeek = $cursor->dayOfWeekIso - 1; // 0=Mon, 6=Sun
+            $dayOfWeek = $cursor->dayOfWeekIso - 1;
             $dateStr = $cursor->toDateString();
             $hours = round($dailyHours[$dateStr] ?? 0, 2);
 
@@ -74,7 +73,6 @@ class Reports extends Component
                 $currentWeek = [];
             }
 
-            // Track month labels at the start of each month
             $month = $cursor->month;
             if ($month !== $lastMonth) {
                 $monthLabels[] = [
@@ -98,7 +96,6 @@ class Reports extends Component
             $weeks[] = $currentWeek;
         }
 
-        // Find max for color scaling
         $maxHours = max(1, max(array_values($dailyHours) ?: [0]));
 
         return [
@@ -119,29 +116,58 @@ class Reports extends Component
             ->with('vector')
             ->get();
 
-        // Daily hours for filtered period
-        $dailyData = [];
+        // Build daily data keyed by date
+        $dailyDates = [];
         $cursor = $start->copy();
         while ($cursor->lte($end)) {
-            $dayKey = $cursor->toDateString();
-            $dailyData[$dayKey] = 0;
+            $dailyDates[] = $cursor->toDateString();
             $cursor->addDay();
         }
+
+        // Collect all vectors used in period + "No vector"
+        $vectorMap = []; // vectorKey => [name, color]
+        $dailyByVector = []; // vectorKey => [date => hours]
 
         foreach ($entries as $entry) {
             $dayKey = $entry->started_at->toDateString();
             $seconds = $entry->started_at->diffInSeconds($entry->stopped_at);
-            if (isset($dailyData[$dayKey])) {
-                $dailyData[$dayKey] += $seconds / 3600;
+            $hours = $seconds / 3600;
+
+            if ($entry->vector) {
+                $vKey = 'v_' . $entry->vector->id;
+                $vectorMap[$vKey] = ['name' => $entry->vector->name, 'color' => $entry->vector->color];
+            } else {
+                $vKey = '_none';
+                $vectorMap[$vKey] = ['name' => __('app.reports_no_vector'), 'color' => '#6B7280'];
             }
+
+            if (!isset($dailyByVector[$vKey])) {
+                $dailyByVector[$vKey] = [];
+            }
+            $dailyByVector[$vKey][$dayKey] = ($dailyByVector[$vKey][$dayKey] ?? 0) + $hours;
         }
 
-        $dailyChart = [
-            'labels' => array_map(fn($d) => Carbon::parse($d)->format('M d'), array_keys($dailyData)),
-            'data' => array_map(fn($h) => round($h, 2), array_values($dailyData)),
+        // Build stacked datasets for Chart.js
+        $datasets = [];
+        foreach ($vectorMap as $vKey => $info) {
+            $data = [];
+            foreach ($dailyDates as $date) {
+                $data[] = round($dailyByVector[$vKey][$date] ?? 0, 2);
+            }
+            $datasets[] = [
+                'label' => $info['name'],
+                'data' => $data,
+                'backgroundColor' => $info['color'],
+                'borderRadius' => 4,
+            ];
+        }
+
+        $dailyStackedChart = [
+            'labels' => array_map(fn($d) => Carbon::parse($d)->format('M d'), $dailyDates),
+            'datasets' => $datasets,
         ];
 
-        // Per-vector breakdown
+        // Per-vector breakdown (for list + doughnut)
         $vectorTotals = [];
         $vectorColors = [];
         $noVectorSeconds = 0;
@@ -162,11 +188,26 @@ class Reports extends Component
             $vectorColors[__('app.reports_no_vector')] = '#6B7280';
         }
 
+        // Sort by total time descending
+        arsort($vectorTotals);
+
         $vectorChart = [
             'labels' => array_keys($vectorTotals),
             'data' => array_map(fn($s) => round($s / 3600, 2), array_values($vectorTotals)),
-            'colors' => array_values($vectorColors),
+            'colors' => array_map(fn($name) => $vectorColors[$name], array_keys($vectorTotals)),
         ];
+
+        // Vector breakdown for list display
+        $vectorBreakdown = [];
+        foreach ($vectorTotals as $name => $seconds) {
+            $vectorBreakdown[] = [
+                'name' => $name,
+                'color' => $vectorColors[$name],
+                'seconds' => $seconds,
+                'hours' => floor($seconds / 3600),
+                'minutes' => floor(($seconds % 3600) / 60),
+            ];
+        }
 
         // Top descriptions
         $descriptionTotals = [];
@@ -183,14 +224,24 @@ class Reports extends Component
         $totalHours = floor($totalSeconds / 3600);
         $totalMinutes = floor(($totalSeconds % 3600) / 60);
 
-        $activeDays = collect($dailyData)->filter(fn($h) => $h > 0)->count();
+        $dailyTotals = [];
+        foreach ($dailyDates as $date) {
+            $total = 0;
+            foreach ($dailyByVector as $vData) {
+                $total += $vData[$date] ?? 0;
+            }
+            $dailyTotals[$date] = $total;
+        }
+
+        $activeDays = collect($dailyTotals)->filter(fn($h) => $h > 0)->count();
         $avgHoursPerDay = $activeDays > 0 ? round($totalSeconds / 3600 / $activeDays, 1) : 0;
 
         $heatmap = $this->buildHeatmap();
 
         return view('livewire.reports', [
-            'dailyChart' => $dailyChart,
+            'dailyStackedChart' => $dailyStackedChart,
             'vectorChart' => $vectorChart,
+            'vectorBreakdown' => $vectorBreakdown,
             'topDescriptions' => $topDescriptions,
             'totalHours' => $totalHours,
             'totalMinutes' => $totalMinutes,

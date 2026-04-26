@@ -19,6 +19,16 @@ return [
 
     'entry_delete' => 'Excluir',
     'entry_delete_confirm' => 'Excluir este registro?',
+    'entry_edit_start' => 'Início',
+    'entry_edit_end' => 'Fim',
+    'entry_save' => 'Salvar',
+    'entry_cancel' => 'Cancelar',
+
+    'manual_entry_title' => 'Adicionar registro',
+    'manual_entry_start' => 'Início',
+    'manual_entry_end' => 'Fim',
+    'manual_entry_save' => 'Salvar registro',
+    'manual_entry_cancel' => 'Cancelar',
 
     'vectors_title' => 'Vetores',
     'vector_name' => 'Nome',
