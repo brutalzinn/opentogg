@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -11,6 +10,7 @@ class TagManager extends Component
     public string $name = '';
 
     public ?int $editingId = null;
+
     public string $editingName = '';
 
     public function create(): void

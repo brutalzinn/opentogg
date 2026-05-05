@@ -54,7 +54,7 @@ class TogglCompatController extends Controller
             ->with('vector')
             ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->make('null', 200, ['Content-Type' => 'application/json']);
         }
 
@@ -96,7 +96,7 @@ class TogglCompatController extends Controller
 
         // Also accept project_id (pid) to set the vector
         $pid = $request->input('project_id') ?? $request->input('pid');
-        if ($pid && !$vector) {
+        if ($pid && ! $vector) {
             $vector = $user->vectors()->find($pid);
         }
 
@@ -118,7 +118,7 @@ class TogglCompatController extends Controller
     {
         $entry = $request->user()->timeEntries()->find($id);
 
-        if (!$entry || $entry->stopped_at) {
+        if (! $entry || $entry->stopped_at) {
             return response()->json(['error' => 'No running timer found'], 404);
         }
 
@@ -136,7 +136,7 @@ class TogglCompatController extends Controller
     {
         $entry = $request->user()->timeEntries()->find($id);
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json(['error' => 'Not found'], 404);
         }
 
@@ -163,7 +163,7 @@ class TogglCompatController extends Controller
     {
         $entry = $request->user()->timeEntries()->find($id);
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json(['error' => 'Not found'], 404);
         }
 

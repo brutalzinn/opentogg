@@ -77,7 +77,11 @@
                         @if($entry->vector)
                             <span class="text-sm" style="color: {{ $entry->vector->color }}">{{ $entry->vector->name }}</span>
                         @endif
-                        <span class="text-text-secondary text-sm">
+                        <span class="text-text-secondary text-sm" x-data x-text="
+                            new Date('{{ $entry->started_at->toISOString() }}').toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})
+                            + ' – ' +
+                            new Date('{{ $entry->stopped_at->toISOString() }}').toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})
+                        ">
                             {{ $entry->started_at->format('H:i') }} – {{ $entry->stopped_at->format('H:i') }}
                         </span>
                         <span class="text-text-secondary text-sm">

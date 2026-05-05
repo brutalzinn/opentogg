@@ -2,17 +2,19 @@
 
 namespace App\Livewire;
 
-use App\Models\Vector;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class VectorManager extends Component
 {
     public string $name = '';
+
     public string $color = '#6B7280';
 
     public ?int $editingId = null;
+
     public string $editingName = '';
+
     public string $editingColor = '#6B7280';
 
     public function create(): void

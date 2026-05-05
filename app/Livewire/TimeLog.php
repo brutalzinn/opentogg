@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\TimeEntry;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -10,9 +10,13 @@ use Livewire\Component;
 class TimeLog extends Component
 {
     public ?int $editingEntryId = null;
+
     public ?string $editDescription = null;
+
     public ?int $editVectorId = null;
+
     public ?string $editStartedAt = null;
+
     public ?string $editStoppedAt = null;
 
     #[On('entry-stopped')]
@@ -42,8 +46,8 @@ class TimeLog extends Component
         $entry = Auth::user()->timeEntries()->findOrFail($this->editingEntryId);
         $entry->description = $this->editDescription ?: null;
         $entry->vector_id = $this->editVectorId ?: null;
-        $entry->started_at = \Illuminate\Support\Carbon::parse($this->editStartedAt);
-        $entry->stopped_at = \Illuminate\Support\Carbon::parse($this->editStoppedAt);
+        $entry->started_at = Carbon::parse($this->editStartedAt);
+        $entry->stopped_at = Carbon::parse($this->editStoppedAt);
         $entry->save();
 
         $this->cancelFullEdit();

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -12,6 +12,7 @@ class User extends Authenticatable
     use HasApiTokens;
 
     const CREATED_AT = 'createAt';
+
     const UPDATED_AT = 'updateAt';
 
     protected $fillable = [
@@ -20,6 +21,8 @@ class User extends Authenticatable
         'avatar',
         'google_id',
         'external_id',
+        'locale',
+        'timezone',
     ];
 
     protected $hidden = [
@@ -53,5 +56,10 @@ class User extends Authenticatable
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class);
+    }
+
+    public function goals(): HasMany
+    {
+        return $this->hasMany(Goal::class);
     }
 }

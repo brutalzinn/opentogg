@@ -248,7 +248,7 @@ class TimeEntryController extends Controller
     {
         $entry = $request->user()->timeEntries()->whereNull('stopped_at')->first();
 
-        if (!$entry) {
+        if (! $entry) {
             return response()->json(['message' => 'No running timer.'], 404);
         }
 

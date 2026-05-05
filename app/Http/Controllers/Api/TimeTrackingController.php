@@ -16,6 +16,4 @@ use OpenApi\Attributes as OA;
     scheme: 'bearer',
 )]
 #[OA\Server(url: '/api/v1', description: 'API v1')]
-class TimeTrackingController extends Controller
-{
-}
+class TimeTrackingController extends Controller {}

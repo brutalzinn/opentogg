@@ -32,7 +32,7 @@ class ReportExportController extends Controller
     {
         $entries = $this->getEntries($request);
 
-        $filename = 'opentogg-report-' . $request->start . '-to-' . $request->end . '.csv';
+        $filename = 'opentogg-report-'.$request->start.'-to-'.$request->end.'.csv';
 
         return response()->streamDownload(function () use ($entries) {
             $handle = fopen('php://output', 'w');
@@ -72,7 +72,7 @@ class ReportExportController extends Controller
     {
         $entries = $this->getEntries($request);
 
-        $totalSeconds = $entries->sum(fn($e) => $e->started_at->diffInSeconds($e->stopped_at));
+        $totalSeconds = $entries->sum(fn ($e) => $e->started_at->diffInSeconds($e->stopped_at));
         $totalHours = floor($totalSeconds / 3600);
         $totalMinutes = floor(($totalSeconds % 3600) / 60);
 
@@ -85,7 +85,7 @@ class ReportExportController extends Controller
             'userName' => Auth::user()->name,
         ]);
 
-        $filename = 'opentogg-report-' . $request->start . '-to-' . $request->end . '.pdf';
+        $filename = 'opentogg-report-'.$request->start.'-to-'.$request->end.'.pdf';
 
         return $pdf->download($filename);
     }

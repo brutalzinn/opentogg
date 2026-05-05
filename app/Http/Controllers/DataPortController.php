@@ -22,13 +22,13 @@ class DataPortController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
             ],
-            'vectors' => $user->vectors()->get()->map(fn($v) => [
+            'vectors' => $user->vectors()->get()->map(fn ($v) => [
                 'external_id' => $v->external_id,
                 'name' => $v->name,
                 'color' => $v->color,
                 'createAt' => $v->createAt?->toIso8601String(),
             ])->toArray(),
-            'tags' => $user->tags()->get()->map(fn($t) => [
+            'tags' => $user->tags()->get()->map(fn ($t) => [
                 'external_id' => $t->external_id,
                 'name' => $t->name,
                 'createAt' => $t->createAt?->toIso8601String(),
@@ -37,7 +37,7 @@ class DataPortController extends Controller
                 ->with('vector', 'tags')
                 ->orderBy('started_at')
                 ->get()
-                ->map(fn($e) => [
+                ->map(fn ($e) => [
                     'external_id' => $e->external_id,
                     'description' => $e->description,
                     'vector_external_id' => $e->vector?->external_id,
@@ -48,7 +48,7 @@ class DataPortController extends Controller
                 ])->toArray(),
         ];
 
-        $filename = 'opentogg-export-' . now()->format('Y-m-d-His') . '.json';
+        $filename = 'opentogg-export-'.now()->format('Y-m-d-His').'.json';
 
         return response()->streamDownload(function () use ($data) {
             echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
@@ -66,7 +66,7 @@ class DataPortController extends Controller
         $content = file_get_contents($request->file('file')->getRealPath());
         $data = json_decode($content, true);
 
-        if (!$data || !isset($data['version'])) {
+        if (! $data || ! isset($data['version'])) {
             return back()->with('error', __('app.import_invalid_file'));
         }
 
@@ -96,7 +96,7 @@ class DataPortController extends Controller
 
             foreach ($data['time_entries'] ?? [] as $e) {
                 $vectorId = null;
-                if (!empty($e['vector_external_id']) && isset($vectorMap[$e['vector_external_id']])) {
+                if (! empty($e['vector_external_id']) && isset($vectorMap[$e['vector_external_id']])) {
                     $vectorId = $vectorMap[$e['vector_external_id']];
                 }
 
@@ -152,12 +152,12 @@ class DataPortController extends Controller
         $data = [
             'version' => 1,
             'exported_at' => now()->toIso8601String(),
-            'vectors' => $user->vectors()->get()->map(fn($v) => [
+            'vectors' => $user->vectors()->get()->map(fn ($v) => [
                 'external_id' => $v->external_id,
                 'name' => $v->name,
                 'color' => $v->color,
             ])->toArray(),
-            'tags' => $user->tags()->get()->map(fn($t) => [
+            'tags' => $user->tags()->get()->map(fn ($t) => [
                 'external_id' => $t->external_id,
                 'name' => $t->name,
             ])->toArray(),
@@ -165,7 +165,7 @@ class DataPortController extends Controller
                 ->with('vector', 'tags')
                 ->orderBy('started_at')
                 ->get()
-                ->map(fn($e) => [
+                ->map(fn ($e) => [
                     'external_id' => $e->external_id,
                     'description' => $e->description,
                     'vector_external_id' => $e->vector?->external_id,
@@ -298,7 +298,7 @@ class DataPortController extends Controller
 
             foreach ($data['time_entries'] ?? [] as $e) {
                 $vectorId = null;
-                if (!empty($e['vector_external_id']) && isset($vectorMap[$e['vector_external_id']])) {
+                if (! empty($e['vector_external_id']) && isset($vectorMap[$e['vector_external_id']])) {
                     $vectorId = $vectorMap[$e['vector_external_id']];
                 }
 

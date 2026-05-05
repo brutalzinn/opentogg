@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
         return view('pages.tags');
     })->name('tags');
 
+    Route::get('/goals', function () {
+        return view('pages.goals');
+    })->name('goals');
+
     Route::get('/reports', function () {
         return view('pages.reports');
     })->name('reports');
@@ -50,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
+
         return redirect('/login');
     })->name('logout');
 });

@@ -9,9 +9,13 @@ use Livewire\Component;
 class ManualEntry extends Component
 {
     public bool $showForm = false;
+
     public ?string $description = '';
+
     public ?int $vectorId = null;
+
     public ?string $startedAt = '';
+
     public ?string $stoppedAt = '';
 
     public function openForm(): void

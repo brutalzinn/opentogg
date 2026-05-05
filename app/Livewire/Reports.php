@@ -9,7 +9,9 @@ use Livewire\Component;
 class Reports extends Component
 {
     public string $period = 'week';
+
     public string $startDate = '';
+
     public string $endDate = '';
 
     public function mount(): void
@@ -68,7 +70,7 @@ class Reports extends Component
             $dateStr = $cursor->toDateString();
             $hours = round($dailyHours[$dateStr] ?? 0, 2);
 
-            if ($dayOfWeek === 0 && !empty($currentWeek)) {
+            if ($dayOfWeek === 0 && ! empty($currentWeek)) {
                 $weeks[] = $currentWeek;
                 $currentWeek = [];
             }
@@ -86,13 +88,13 @@ class Reports extends Component
                 'date' => $dateStr,
                 'hours' => $hours,
                 'day' => $dayOfWeek,
-                'label' => $cursor->format('M d') . ': ' . ($hours > 0 ? round($hours, 1) . 'h' : __('app.reports_heatmap_no_activity')),
+                'label' => $cursor->format('M d').': '.($hours > 0 ? round($hours, 1).'h' : __('app.reports_heatmap_no_activity')),
             ];
 
             $cursor->addDay();
         }
 
-        if (!empty($currentWeek)) {
+        if (! empty($currentWeek)) {
             $weeks[] = $currentWeek;
         }
 
@@ -134,14 +136,14 @@ class Reports extends Component
             $hours = $seconds / 3600;
 
             if ($entry->vector) {
-                $vKey = 'v_' . $entry->vector->id;
+                $vKey = 'v_'.$entry->vector->id;
                 $vectorMap[$vKey] = ['name' => $entry->vector->name, 'color' => $entry->vector->color];
             } else {
                 $vKey = '_none';
                 $vectorMap[$vKey] = ['name' => __('app.reports_no_vector'), 'color' => '#6B7280'];
             }
 
-            if (!isset($dailyByVector[$vKey])) {
+            if (! isset($dailyByVector[$vKey])) {
                 $dailyByVector[$vKey] = [];
             }
             $dailyByVector[$vKey][$dayKey] = ($dailyByVector[$vKey][$dayKey] ?? 0) + $hours;
@@ -163,7 +165,7 @@ class Reports extends Component
         }
 
         $dailyStackedChart = [
-            'labels' => array_map(fn($d) => Carbon::parse($d)->format('M d'), $dailyDates),
+            'labels' => array_map(fn ($d) => Carbon::parse($d)->format('M d'), $dailyDates),
             'datasets' => $datasets,
         ];
 
@@ -193,8 +195,8 @@ class Reports extends Component
 
         $vectorChart = [
             'labels' => array_keys($vectorTotals),
-            'data' => array_map(fn($s) => round($s / 3600, 2), array_values($vectorTotals)),
-            'colors' => array_map(fn($name) => $vectorColors[$name], array_keys($vectorTotals)),
+            'data' => array_map(fn ($s) => round($s / 3600, 2), array_values($vectorTotals)),
+            'colors' => array_map(fn ($name) => $vectorColors[$name], array_keys($vectorTotals)),
         ];
 
         // Vector breakdown for list display
@@ -220,7 +222,7 @@ class Reports extends Component
         $topDescriptions = array_slice($descriptionTotals, 0, 10, true);
 
         // Total hours
-        $totalSeconds = $entries->sum(fn($e) => $e->started_at->diffInSeconds($e->stopped_at));
+        $totalSeconds = $entries->sum(fn ($e) => $e->started_at->diffInSeconds($e->stopped_at));
         $totalHours = floor($totalSeconds / 3600);
         $totalMinutes = floor(($totalSeconds % 3600) / 60);
 
@@ -233,7 +235,7 @@ class Reports extends Component
             $dailyTotals[$date] = $total;
         }
 
-        $activeDays = collect($dailyTotals)->filter(fn($h) => $h > 0)->count();
+        $activeDays = collect($dailyTotals)->filter(fn ($h) => $h > 0)->count();
         $avgHoursPerDay = $activeDays > 0 ? round($totalSeconds / 3600 / $activeDays, 1) : 0;
 
         $heatmap = $this->buildHeatmap();

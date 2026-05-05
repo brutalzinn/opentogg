@@ -21,6 +21,7 @@ class VectorController extends Controller
     public function index(Request $request): JsonResponse
     {
         $vectors = $request->user()->vectors()->orderBy('name')->get();
+
         return response()->json(['data' => $vectors]);
     }
 
@@ -75,6 +76,7 @@ class VectorController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $vector = $request->user()->vectors()->where('external_id', $id)->firstOrFail();
+
         return response()->json(['data' => $vector]);
     }
 

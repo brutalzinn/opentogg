@@ -21,6 +21,7 @@ class TagController extends Controller
     public function index(Request $request): JsonResponse
     {
         $tags = $request->user()->tags()->orderBy('name')->get();
+
         return response()->json(['data' => $tags]);
     }
 
@@ -69,6 +70,7 @@ class TagController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $tag = $request->user()->tags()->where('external_id', $id)->firstOrFail();
+
         return response()->json(['data' => $tag]);
     }
 

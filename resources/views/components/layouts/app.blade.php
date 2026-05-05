@@ -19,6 +19,7 @@
                 <a href="{{ route('dashboard') }}" @class(['py-1', 'text-accent' => request()->routeIs('dashboard'), 'text-text-secondary hover:text-text-primary' => !request()->routeIs('dashboard')])>{{ __('app.nav_dashboard') }}</a>
                 <a href="{{ route('vectors') }}" @class(['py-1', 'text-accent' => request()->routeIs('vectors'), 'text-text-secondary hover:text-text-primary' => !request()->routeIs('vectors')])>{{ __('app.nav_vectors') }}</a>
                 <a href="{{ route('tags') }}" @class(['py-1', 'text-accent' => request()->routeIs('tags'), 'text-text-secondary hover:text-text-primary' => !request()->routeIs('tags')])>{{ __('app.nav_tags') }}</a>
+                <a href="{{ route('goals') }}" @class(['py-1', 'text-accent' => request()->routeIs('goals'), 'text-text-secondary hover:text-text-primary' => !request()->routeIs('goals')])>{{ __('app.nav_goals') }}</a>
                 <a href="{{ route('reports') }}" @class(['py-1', 'text-accent' => request()->routeIs('reports'), 'text-text-secondary hover:text-text-primary' => !request()->routeIs('reports')])>{{ __('app.nav_reports') }}</a>
                 <a href="{{ route('settings') }}" @class(['py-1', 'text-accent' => request()->routeIs('settings'), 'text-text-secondary hover:text-text-primary' => !request()->routeIs('settings')])>{{ __('app.nav_settings') }}</a>
                 <span class="text-text-secondary text-sm">{{ Auth::user()->name }}</span>
@@ -41,6 +42,39 @@
         </div>
     </nav>
 
+    {{-- Toast notifications --}}
+    <div
+        x-data="{
+            toasts: [],
+            add(message, type = 'success') {
+                const id = Date.now();
+                this.toasts.push({ id, message, type });
+                setTimeout(() => this.remove(id), 5000);
+            },
+            remove(id) {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }
+        }"
+        @goal-achieved.window="add($event.detail.message, 'success')"
+        class="fixed top-16 right-4 z-50 space-y-2 max-w-sm"
+    >
+        <template x-for="toast in toasts" :key="toast.id">
+            <div
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-[-1rem]"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="bg-surface-raised border border-success/30 text-text-primary px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 cursor-pointer"
+                @click="remove(toast.id)"
+            >
+                <svg class="w-6 h-6 text-success shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 0 0 .95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 0 0-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 0 0-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 0 0-.363-1.118L1.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 0 0 .951-.69l1.519-4.674Z"/></svg>
+                <span x-text="toast.message" class="text-sm font-medium"></span>
+            </div>
+        </template>
+    </div>
+
     <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 md:py-8">
         {{ $slot }}
     </main>
@@ -59,6 +93,10 @@
             <a href="{{ route('tags') }}" @class(['flex flex-col items-center justify-center py-2 px-1 flex-1 [touch-action:manipulation]', 'text-accent' => request()->routeIs('tags'), 'text-text-secondary' => !request()->routeIs('tags')])>
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
                 <span class="text-[10px] mt-0.5">{{ __('app.nav_tags') }}</span>
+            </a>
+            <a href="{{ route('goals') }}" @class(['flex flex-col items-center justify-center py-2 px-1 flex-1 [touch-action:manipulation]', 'text-accent' => request()->routeIs('goals'), 'text-text-secondary' => !request()->routeIs('goals')])>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 0 0 .95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 0 0-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 0 0-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 0 0-.363-1.118L1.98 10.1c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 0 0 .951-.69l1.519-4.674Z"/></svg>
+                <span class="text-[10px] mt-0.5">{{ __('app.nav_goals') }}</span>
             </a>
             <a href="{{ route('reports') }}" @class(['flex flex-col items-center justify-center py-2 px-1 flex-1 [touch-action:manipulation]', 'text-accent' => request()->routeIs('reports'), 'text-text-secondary' => !request()->routeIs('reports')])>
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>

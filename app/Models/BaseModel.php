@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 abstract class BaseModel extends Model
 {
     const CREATED_AT = 'createAt';
+
     const UPDATED_AT = 'updateAt';
 
     public function getRouteKeyName(): string

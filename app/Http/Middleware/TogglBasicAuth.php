@@ -13,12 +13,12 @@ class TogglBasicAuth
     {
         $authHeader = $request->header('Authorization', '');
 
-        if (!str_starts_with($authHeader, 'Basic ')) {
+        if (! str_starts_with($authHeader, 'Basic ')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         $decoded = base64_decode(substr($authHeader, 6));
-        if (!$decoded || !str_contains($decoded, ':')) {
+        if (! $decoded || ! str_contains($decoded, ':')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -31,7 +31,7 @@ class TogglBasicAuth
 
         $accessToken = PersonalAccessToken::findToken($token);
 
-        if (!$accessToken) {
+        if (! $accessToken) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
