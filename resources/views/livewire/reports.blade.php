@@ -1,89 +1,4 @@
 <div>
-    {{-- GitHub-style activity heatmap (scrollable on mobile, fits on desktop) --}}
-    <div class="bg-surface-raised p-3 sm:p-4 mb-4 rounded-xl"
-        x-data="{
-            maxHours: @js($heatmap['maxHours']),
-            getColor(hours) {
-                if (hours === 0) return '#161B22';
-                const ratio = hours / this.maxHours;
-                if (ratio <= 0.25) return '#3B2667';
-                if (ratio <= 0.50) return '#6B3FA0';
-                if (ratio <= 0.75) return '#9B6DD7';
-                return '#BB86FC';
-            }
-        }"
-    >
-        <h3 class="text-base sm:text-lg font-semibold mb-3">{{ __('app.reports_heatmap_title') }}</h3>
-
-        @php
-            $totalWeeks = count($heatmap['weeks']);
-            $monthPositions = $heatmap['monthLabels'];
-        @endphp
-
-        {{-- Scrollable container on mobile, full-width grid on desktop --}}
-        <div class="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible" style="--cell: 11px; --gap: 2px; --label-w: 24px;">
-            <div class="sm:w-full" style="min-width: calc(var(--label-w) + (var(--cell) + var(--gap)) * {{ $totalWeeks }});">
-                {{-- Month labels --}}
-                <div class="flex text-text-secondary text-[10px] sm:text-xs" style="padding-left: var(--label-w);">
-                    @foreach($monthPositions as $i => $ml)
-                        @php
-                            $nextWeek = isset($monthPositions[$i + 1]) ? $monthPositions[$i + 1]['weekIndex'] : $totalWeeks;
-                            $span = $nextWeek - $ml['weekIndex'];
-                            $pct = ($span / $totalWeeks) * 100;
-                        @endphp
-                        <span style="width: {{ $pct }}%; min-width: 0;">{{ $ml['label'] }}</span>
-                    @endforeach
-                </div>
-
-                <div class="flex gap-0">
-                    {{-- Day-of-week labels (sticky on mobile so they stay visible while scrolling) --}}
-                    <div class="flex flex-col shrink-0 sticky left-3 sm:static z-10 bg-surface-raised" style="width: var(--label-w);">
-                        @foreach(['', 'M', '', 'W', '', 'F', ''] as $label)
-                            <div class="text-text-secondary text-[10px] sm:text-xs flex items-center justify-center" style="height: var(--cell); margin-bottom: var(--gap);">{{ $label }}</div>
-                        @endforeach
-                    </div>
-
-                    {{-- Weeks grid --}}
-                    <div class="flex-1 grid" style="grid-template-columns: repeat({{ $totalWeeks }}, minmax(var(--cell), 1fr)); gap: var(--gap);">
-                        @foreach($heatmap['weeks'] as $week)
-                            <div class="flex flex-col" style="gap: var(--gap);">
-                                @if($loop->first && $week[0]['day'] > 0)
-                                    @for($i = 0; $i < $week[0]['day']; $i++)
-                                        <div style="height: var(--cell);"></div>
-                                    @endfor
-                                @endif
-
-                                @foreach($week as $day)
-                                    <div
-                                        class="rounded-[2px]"
-                                        style="height: var(--cell); aspect-ratio: 1;"
-                                        :style="{ backgroundColor: getColor({{ $day['hours'] }}) }"
-                                        title="{{ $day['label'] }}"
-                                    ></div>
-                                @endforeach
-
-                                @if($loop->last)
-                                    @for($i = count($week) + ($loop->first && $week[0]['day'] > 0 ? $week[0]['day'] : 0); $i < 7; $i++)
-                                        <div style="height: var(--cell);"></div>
-                                    @endfor
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- Legend (outside scroll area so it's always visible) --}}
-        </div>
-        <div class="flex items-center gap-1 sm:gap-2 mt-2 justify-end">
-            <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_less') }}</span>
-            @foreach(['#161B22', '#3B2667', '#6B3FA0', '#9B6DD7', '#BB86FC'] as $color)
-                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-[2px]" style="background-color: {{ $color }};"></div>
-            @endforeach
-            <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_more') }}</span>
-        </div>
-    </div>
-
     {{-- Period selector --}}
     <div class="bg-surface-raised p-3 sm:p-4 mb-4 rounded-xl space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-end sm:gap-4">
         <div class="flex-1 min-w-0">
@@ -92,6 +7,7 @@
                 wire:model.live="period"
                 class="w-full sm:w-auto bg-surface-overlay text-text-primary py-2.5 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
             >
+                <option value="today">{{ __('app.reports_today') }}</option>
                 <option value="week">{{ __('app.reports_this_week') }}</option>
                 <option value="month">{{ __('app.reports_this_month') }}</option>
                 <option value="year">{{ __('app.reports_this_year') }}</option>
@@ -129,6 +45,88 @@
                class="flex-1 sm:flex-none text-center bg-surface-overlay hover:bg-surface-overlay/80 text-text-primary py-2.5 px-4 rounded-lg text-sm [touch-action:manipulation]">
                 {{ __('app.export_pdf') }}
             </a>
+        </div>
+    </div>
+
+    {{-- GitHub-style activity heatmap (fully responsive) --}}
+    <div class="bg-surface-raised p-3 sm:p-4 mb-4 rounded-xl"
+        x-data="{
+            maxHours: @js($heatmap['maxHours']),
+            getColor(hours) {
+                if (hours === 0) return '#161B22';
+                const ratio = hours / this.maxHours;
+                if (ratio <= 0.25) return '#3B2667';
+                if (ratio <= 0.50) return '#6B3FA0';
+                if (ratio <= 0.75) return '#9B6DD7';
+                return '#BB86FC';
+            }
+        }"
+    >
+        <h3 class="text-base sm:text-lg font-semibold mb-3">{{ __('app.reports_heatmap_title') }}</h3>
+
+        @php
+            $totalWeeks = count($heatmap['weeks']);
+            $monthPositions = $heatmap['monthLabels'];
+        @endphp
+
+        {{-- Fully responsive grid — cells scale to fit viewport --}}
+        <div style="--gap: 2px; --label-w: 20px;">
+            <div class="w-full">
+                {{-- Month labels --}}
+                <div class="flex text-text-secondary text-[10px] sm:text-xs" style="padding-left: var(--label-w);">
+                    @foreach($monthPositions as $i => $ml)
+                        @php
+                            $nextWeek = isset($monthPositions[$i + 1]) ? $monthPositions[$i + 1]['weekIndex'] : $totalWeeks;
+                            $span = $nextWeek - $ml['weekIndex'];
+                            $pct = ($span / $totalWeeks) * 100;
+                        @endphp
+                        <span style="width: {{ $pct }}%; min-width: 0;">{{ $ml['label'] }}</span>
+                    @endforeach
+                </div>
+
+                <div class="flex gap-0">
+                    {{-- Day-of-week labels --}}
+                    <div class="flex flex-col shrink-0" style="width: var(--label-w);">
+                        @foreach(['', 'M', '', 'W', '', 'F', ''] as $label)
+                            <div class="text-text-secondary text-[8px] sm:text-xs flex items-center justify-center aspect-square" style="margin-bottom: var(--gap);">{{ $label }}</div>
+                        @endforeach
+                    </div>
+
+                    {{-- Weeks grid — uses 1fr columns so cells auto-size to available width --}}
+                    <div class="flex-1 grid" style="grid-template-columns: repeat({{ $totalWeeks }}, 1fr); gap: var(--gap);">
+                        @foreach($heatmap['weeks'] as $week)
+                            <div class="flex flex-col" style="gap: var(--gap);">
+                                @if($loop->first && $week[0]['day'] > 0)
+                                    @for($i = 0; $i < $week[0]['day']; $i++)
+                                        <div class="aspect-square"></div>
+                                    @endfor
+                                @endif
+
+                                @foreach($week as $day)
+                                    <div
+                                        class="rounded-[2px] aspect-square"
+                                        :style="{ backgroundColor: getColor({{ $day['hours'] }}) }"
+                                        title="{{ $day['label'] }}"
+                                    ></div>
+                                @endforeach
+
+                                @if($loop->last)
+                                    @for($i = count($week) + ($loop->first && $week[0]['day'] > 0 ? $week[0]['day'] : 0); $i < 7; $i++)
+                                        <div class="aspect-square"></div>
+                                    @endfor
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-1 sm:gap-2 mt-2 justify-end">
+            <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_less') }}</span>
+            @foreach(['#161B22', '#3B2667', '#6B3FA0', '#9B6DD7', '#BB86FC'] as $color)
+                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-[2px]" style="background-color: {{ $color }};"></div>
+            @endforeach
+            <span class="text-text-secondary text-[10px] sm:text-xs">{{ __('app.reports_heatmap_more') }}</span>
         </div>
     </div>
 

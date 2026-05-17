@@ -8,7 +8,7 @@ use Livewire\Component;
 
 class Reports extends Component
 {
-    public string $period = 'week';
+    public string $period = 'today';
 
     public string $startDate = '';
 
@@ -29,6 +29,7 @@ class Reports extends Component
         $now = now();
 
         match ($this->period) {
+            'today' => $this->setRange($now->copy()->startOfDay(), $now->copy()->endOfDay()),
             'week' => $this->setRange($now->copy()->startOfWeek(), $now->copy()->endOfWeek()),
             'month' => $this->setRange($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
             'year' => $this->setRange($now->copy()->startOfYear(), $now->copy()->endOfYear()),

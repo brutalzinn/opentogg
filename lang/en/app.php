@@ -49,6 +49,7 @@ return [
 
     'nav_reports' => 'Reports',
     'reports_period' => 'Period',
+    'reports_today' => 'Today',
     'reports_this_week' => 'This week',
     'reports_this_month' => 'This month',
     'reports_this_year' => 'This year',

@@ -49,6 +49,7 @@ return [
 
     'nav_reports' => 'Relatórios',
     'reports_period' => 'Período',
+    'reports_today' => 'Hoje',
     'reports_this_week' => 'Esta semana',
     'reports_this_month' => 'Este mês',
     'reports_this_year' => 'Este ano',
