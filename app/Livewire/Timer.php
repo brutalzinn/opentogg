@@ -6,6 +6,7 @@ use App\Jobs\DispatchGoalWebhook;
 use App\Models\Goal;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Timer extends Component
@@ -21,30 +22,74 @@ class Timer extends Component
     public function mount(): void
     {
         $entry = Auth::user()->timeEntries()
+            ->with('tags')
             ->whereNull('stopped_at')
             ->first();
 
         if ($entry) {
             $this->runningEntryId = $entry->id;
             $this->isRunning = true;
-            $this->description = $entry->description ?? '';
+            $this->description = $this->rebuildDescriptionWithTags(
+                $entry->description,
+                $entry->tags->pluck('name')->toArray()
+            );
             $this->vectorId = $entry->vector_id;
         }
     }
 
     public function start(): void
     {
+        $cleanDescription = $this->extractAndSyncTags($this->description);
+
         $entry = Auth::user()->timeEntries()->create([
-            'description' => $this->description ?: null,
+            'description' => $cleanDescription ?: null,
             'vector_id' => $this->vectorId ?: null,
             'started_at' => now(),
             'stopped_at' => null,
         ]);
 
+        $this->syncTagsToEntry($entry);
+
+        $this->runningEntryId = $entry->id;
+        $this->isRunning = true;
+
+        // Keep #tags visible in the input for visual feedback
+        $this->description = $this->rebuildDescriptionWithTags($cleanDescription);
+
+        $this->dispatch('timer-started', startedAt: (int) $entry->started_at->timestamp);
+    }
+
+    #[On('continue-entry')]
+    public function continueEntry(int $entryId): void
+    {
+        if ($this->isRunning) {
+            $this->stop();
+        }
+
+        $original = Auth::user()->timeEntries()->with('tags')->findOrFail($entryId);
+
+        $this->description = $this->rebuildDescriptionWithTags(
+            $original->description,
+            $original->tags->pluck('name')->toArray()
+        );
+        $this->vectorId = $original->vector_id;
+
+        $entry = Auth::user()->timeEntries()->create([
+            'description' => $original->description,
+            'vector_id' => $original->vector_id,
+            'started_at' => now(),
+            'stopped_at' => null,
+        ]);
+
+        if ($original->tags->isNotEmpty()) {
+            $entry->tags()->sync($original->tags->pluck('id'));
+        }
+
         $this->runningEntryId = $entry->id;
         $this->isRunning = true;
 
         $this->dispatch('timer-started', startedAt: (int) $entry->started_at->timestamp);
+        $this->dispatch('entry-stopped');
     }
 
     public function stop(): void
@@ -133,6 +178,7 @@ class Timer extends Component
     public function syncState(): void
     {
         $entry = Auth::user()->timeEntries()
+            ->with('tags')
             ->whereNull('stopped_at')
             ->first();
 
@@ -140,7 +186,10 @@ class Timer extends Component
             // Timer was started externally (API, another device)
             $this->runningEntryId = $entry->id;
             $this->isRunning = true;
-            $this->description = $entry->description ?? '';
+            $this->description = $this->rebuildDescriptionWithTags(
+                $entry->description,
+                $entry->tags->pluck('name')->toArray()
+            );
             $this->vectorId = $entry->vector_id;
             $this->dispatch('timer-started', startedAt: (int) $entry->started_at->timestamp);
         } elseif (! $entry && $this->isRunning) {
@@ -162,9 +211,58 @@ class Timer extends Component
 
         $entry = Auth::user()->timeEntries()->find($this->runningEntryId);
         if ($entry) {
-            $entry->description = $this->description ?: null;
+            $cleanDescription = $this->extractAndSyncTags($this->description);
+            $entry->description = $cleanDescription ?: null;
             $entry->save();
+            $this->syncTagsToEntry($entry);
         }
+    }
+
+    private function extractAndSyncTags(?string $text): ?string
+    {
+        if (! $text) {
+            return $text;
+        }
+
+        preg_match_all('/#([\w-]+)/', $text, $matches);
+        $this->parsedTagNames = array_unique(array_map('strtolower', $matches[1]));
+
+        return trim(preg_replace('/#[\w-]+/', '', $text));
+    }
+
+    private function syncTagsToEntry($entry): void
+    {
+        if (empty($this->parsedTagNames)) {
+            $entry->tags()->detach();
+
+            return;
+        }
+
+        $user = Auth::user();
+        $tagIds = [];
+
+        foreach ($this->parsedTagNames as $tagName) {
+            $tag = $user->tags()->firstOrCreate(['name' => $tagName]);
+            $tagIds[] = $tag->id;
+        }
+
+        $entry->tags()->sync($tagIds);
+    }
+
+    private array $parsedTagNames = [];
+
+    private function rebuildDescriptionWithTags(?string $description, ?array $tagNames = null): string
+    {
+        $tags = $tagNames ?? $this->parsedTagNames;
+        $parts = [];
+        if ($description) {
+            $parts[] = $description;
+        }
+        foreach ($tags as $tag) {
+            $parts[] = '#'.$tag;
+        }
+
+        return implode(' ', $parts);
     }
 
     public function render()
@@ -177,9 +275,12 @@ class Timer extends Component
             $startedAtUnix = $entry?->started_at?->timestamp;
         }
 
+        $tags = Auth::user()->tags()->orderBy('name')->pluck('name');
+
         return view('livewire.timer', [
             'vectors' => $vectors,
             'startedAtUnix' => $startedAtUnix,
+            'tags' => $tags,
         ]);
     }
 }

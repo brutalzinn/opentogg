@@ -121,4 +121,7 @@ return [
     'goals_webhook_help' => 'Quando esta meta for atingida, uma requisição POST será enviada para esta URL com os detalhes da meta.',
     'goals_webhook_active' => 'Webhook ativo',
     'goals_toast_achieved' => 'Meta :vector atingida! :hours h/:period',
+
+    'entry_continue' => 'Continuar',
+    'timer_description_placeholder_tags' => 'No que você está trabalhando? Use #tag',
 ];

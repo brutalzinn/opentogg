@@ -121,4 +121,7 @@ return [
     'goals_webhook_help' => 'When this goal is achieved, a POST request will be sent to this URL with goal details.',
     'goals_webhook_active' => 'Webhook enabled',
     'goals_toast_achieved' => ':vector goal reached! :hours h/:period',
+
+    'entry_continue' => 'Continue',
+    'timer_description_placeholder_tags' => 'What are you working on? Use #tag',
 ];

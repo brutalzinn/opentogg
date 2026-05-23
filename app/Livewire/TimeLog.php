@@ -72,7 +72,7 @@ class TimeLog extends Component
         $entries = Auth::user()->timeEntries()
             ->whereNotNull('stopped_at')
             ->whereDate('stopped_at', today())
-            ->with('vector')
+            ->with(['vector', 'tags'])
             ->orderByDesc('updateAt')
             ->get();
 
