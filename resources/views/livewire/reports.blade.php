@@ -154,13 +154,14 @@
     <div class="bg-surface-raised p-3 sm:p-4 mb-4 rounded-xl">
         <h3 class="text-base sm:text-lg font-semibold mb-4">{{ __('app.reports_daily_hours') }}</h3>
         <div
+            wire:key="daily-chart-{{ md5(json_encode($dailyStackedChart)) }}"
             x-data="{
                 chart: null,
                 init() {
                     this.render(@js($dailyStackedChart));
-                    $wire.on('reports-updated', () => {
-                        this.$nextTick(() => this.render(@js($dailyStackedChart)));
-                    });
+                },
+                destroy() {
+                    if (this.chart) this.chart.destroy();
                 },
                 render(data) {
                     if (this.chart) this.chart.destroy();
@@ -210,7 +211,6 @@
                     });
                 }
             }"
-            wire:ignore
         >
             <div class="h-48 sm:h-72">
                 <canvas x-ref="dailyCanvas"></canvas>
@@ -254,13 +254,14 @@
     @if(count($vectorChart['labels']) > 0)
         <div class="bg-surface-raised p-3 sm:p-4 mb-4 rounded-xl">
             <div
+                wire:key="vector-chart-{{ md5(json_encode($vectorChart)) }}"
                 x-data="{
                     chart: null,
                     init() {
                         this.render(@js($vectorChart));
-                        $wire.on('reports-updated', () => {
-                            this.$nextTick(() => this.render(@js($vectorChart)));
-                        });
+                    },
+                    destroy() {
+                        if (this.chart) this.chart.destroy();
                     },
                     render(data) {
                         if (this.chart) this.chart.destroy();
@@ -289,7 +290,7 @@
                                     },
                                     tooltip: {
                                         callbacks: {
-                                            label: ctx => ctx.label + ': ' + ctx.parsed + 'h'
+                                            label: ctx => ctx.label + ': ' + ctx.parsed.toFixed(1) + 'h'
                                         }
                                     }
                                 }
@@ -297,7 +298,6 @@
                         });
                     }
                 }"
-                wire:ignore
             >
                 <div class="h-56 sm:h-80">
                     <canvas x-ref="vectorCanvas"></canvas>
