@@ -141,7 +141,7 @@ class Reports extends Component
                 $vectorMap[$vKey] = ['name' => $entry->vector->name, 'color' => $entry->vector->color];
             } else {
                 $vKey = '_none';
-                $vectorMap[$vKey] = ['name' => __('app.reports_no_vector'), 'color' => '#6B7280'];
+                $vectorMap[$vKey] = ['name' => __('app.reports_no_vector'), 'color' => '#9CA3AF'];
             }
 
             if (! isset($dailyByVector[$vKey])) {
@@ -188,7 +188,7 @@ class Reports extends Component
 
         if ($noVectorSeconds > 0) {
             $vectorTotals[__('app.reports_no_vector')] = $noVectorSeconds;
-            $vectorColors[__('app.reports_no_vector')] = '#6B7280';
+            $vectorColors[__('app.reports_no_vector')] = '#9CA3AF';
         }
 
         // Sort by total time descending
