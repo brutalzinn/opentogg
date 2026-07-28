@@ -41,7 +41,7 @@ npm-dev:
 	$(DC) exec app npm run dev
 
 npm-build:
-	$(DC) exec app npm run build
+	npm install && npm run build
 
 test:
 	$(DC) exec app php artisan test

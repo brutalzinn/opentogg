@@ -43,12 +43,12 @@
 
             <div class="space-y-4">
                 <div>
-                    <input
-                        type="text"
-                        wire:model="description"
-                        placeholder="{{ __('app.timer_description_placeholder') }}"
-                        class="w-full bg-surface-overlay text-text-primary text-lg py-3 px-4 rounded-lg placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
-                    >
+                    <x-tag-input
+                        model="description"
+                        :tags="$tags"
+                        :placeholder="__('app.timer_description_placeholder_tags')"
+                        input-class="w-full bg-surface-overlay text-text-primary text-lg py-3 px-4 rounded-lg placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
                 </div>
 
                 <div>

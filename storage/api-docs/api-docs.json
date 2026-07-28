@@ -179,7 +179,8 @@
                 "tags": [
                     "Time Entries"
                 ],
-                "summary": "List completed time entries",
+                "summary": "List time entries",
+                "description": "Returns the user's time entries ordered most-recent first. The currently running entry (identified by \"stopped_at\": null) is included inline at the top of the list.",
                 "operationId": "678173875d6a18f465e1c010fd87f2b0",
                 "parameters": [
                     {

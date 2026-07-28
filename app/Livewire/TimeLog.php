@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HandlesEntryTags;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -9,6 +10,8 @@ use Livewire\Component;
 
 class TimeLog extends Component
 {
+    use HandlesEntryTags;
+
     public ?int $editingEntryId = null;
 
     public ?string $editDescription = null;
@@ -27,10 +30,13 @@ class TimeLog extends Component
 
     public function startFullEdit(int $id): void
     {
-        $entry = Auth::user()->timeEntries()->findOrFail($id);
+        $entry = Auth::user()->timeEntries()->with('tags')->findOrFail($id);
 
         $this->editingEntryId = $entry->id;
-        $this->editDescription = $entry->description ?? '';
+        $this->editDescription = $this->rebuildDescriptionWithTags(
+            $entry->description,
+            $entry->tags->pluck('name')->toArray()
+        );
         $this->editVectorId = $entry->vector_id;
         $this->editStartedAt = $entry->started_at->format('Y-m-d\TH:i');
         $this->editStoppedAt = $entry->stopped_at->format('Y-m-d\TH:i');
@@ -43,12 +49,16 @@ class TimeLog extends Component
             'editStoppedAt' => 'required|date|after:editStartedAt',
         ]);
 
+        $cleanDescription = $this->extractAndSyncTags($this->editDescription);
+
         $entry = Auth::user()->timeEntries()->findOrFail($this->editingEntryId);
-        $entry->description = $this->editDescription ?: null;
+        $entry->description = $cleanDescription ?: null;
         $entry->vector_id = $this->editVectorId ?: null;
         $entry->started_at = Carbon::parse($this->editStartedAt);
         $entry->stopped_at = Carbon::parse($this->editStoppedAt);
         $entry->save();
+
+        $this->syncTagsToEntry($entry);
 
         $this->cancelFullEdit();
     }
@@ -77,10 +87,12 @@ class TimeLog extends Component
             ->get();
 
         $vectors = Auth::user()->vectors()->orderBy('name')->get();
+        $tags = Auth::user()->tags()->orderBy('name')->pluck('name');
 
         return view('livewire.time-log', [
             'entries' => $entries,
             'vectors' => $vectors,
+            'tags' => $tags,
         ]);
     }
 }

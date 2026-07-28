@@ -5,13 +5,12 @@
         @if($editingEntryId === $entry->id)
             {{-- Inline Edit Form --}}
             <div class="bg-surface-overlay border-l-4 border-accent p-3 sm:p-4 mb-2 rounded-xl space-y-3">
-                <input
-                    type="text"
-                    wire:model="editDescription"
-                    placeholder="{{ __('app.timer_description_placeholder') }}"
-                    class="w-full bg-surface text-text-primary text-lg py-3 px-4 rounded-lg placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
-                    autofocus
-                >
+                <x-tag-input
+                    model="editDescription"
+                    :tags="$tags"
+                    :placeholder="__('app.timer_description_placeholder_tags')"
+                    input-class="w-full bg-surface text-text-primary text-lg py-3 px-4 rounded-lg placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
+                />
 
                 <select
                     wire:model="editVectorId"

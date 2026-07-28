@@ -11,7 +11,8 @@ class TimeEntryController extends Controller
 {
     #[OA\Get(
         path: '/time-entries',
-        summary: 'List completed time entries',
+        summary: 'List time entries',
+        description: 'Returns the user\'s time entries ordered most-recent first. The currently running entry (identified by "stopped_at": null) is included inline at the top of the list.',
         security: [['bearerAuth' => []]],
         tags: ['Time Entries'],
         parameters: [
@@ -33,7 +34,6 @@ class TimeEntryController extends Controller
         ]);
 
         $query = $request->user()->timeEntries()
-            ->whereNotNull('stopped_at')
             ->with('vector:id,external_id,name,color', 'tags:id,external_id,name')
             ->orderByDesc('started_at');
 

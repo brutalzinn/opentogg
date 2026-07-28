@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\HandlesEntryTags;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class ManualEntry extends Component
 {
+    use HandlesEntryTags;
+
     public bool $showForm = false;
 
     public ?string $description = '';
@@ -35,12 +38,16 @@ class ManualEntry extends Component
             'stoppedAt' => 'required|date|after:startedAt',
         ]);
 
-        Auth::user()->timeEntries()->create([
-            'description' => $this->description ?: null,
+        $cleanDescription = $this->extractAndSyncTags($this->description);
+
+        $entry = Auth::user()->timeEntries()->create([
+            'description' => $cleanDescription ?: null,
             'vector_id' => $this->vectorId ?: null,
             'started_at' => Carbon::parse($this->startedAt),
             'stopped_at' => Carbon::parse($this->stoppedAt),
         ]);
+
+        $this->syncTagsToEntry($entry);
 
         $this->showForm = false;
         $this->reset(['description', 'vectorId', 'startedAt', 'stoppedAt']);
@@ -56,9 +63,11 @@ class ManualEntry extends Component
     public function render()
     {
         $vectors = Auth::user()->vectors()->orderBy('name')->get();
+        $tags = Auth::user()->tags()->orderBy('name')->pluck('name');
 
         return view('livewire.manual-entry', [
             'vectors' => $vectors,
+            'tags' => $tags,
         ]);
     }
 }

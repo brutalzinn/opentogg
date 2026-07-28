@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Jobs\DispatchGoalWebhook;
+use App\Livewire\Concerns\HandlesEntryTags;
 use App\Models\Goal;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,8 @@ use Livewire\Component;
 
 class Timer extends Component
 {
+    use HandlesEntryTags;
+
     public ?string $description = '';
 
     public ?int $vectorId = null;
@@ -216,53 +219,6 @@ class Timer extends Component
             $entry->save();
             $this->syncTagsToEntry($entry);
         }
-    }
-
-    private function extractAndSyncTags(?string $text): ?string
-    {
-        if (! $text) {
-            return $text;
-        }
-
-        preg_match_all('/#([\w-]+)/', $text, $matches);
-        $this->parsedTagNames = array_unique(array_map('strtolower', $matches[1]));
-
-        return trim(preg_replace('/#[\w-]+/', '', $text));
-    }
-
-    private function syncTagsToEntry($entry): void
-    {
-        if (empty($this->parsedTagNames)) {
-            $entry->tags()->detach();
-
-            return;
-        }
-
-        $user = Auth::user();
-        $tagIds = [];
-
-        foreach ($this->parsedTagNames as $tagName) {
-            $tag = $user->tags()->firstOrCreate(['name' => $tagName]);
-            $tagIds[] = $tag->id;
-        }
-
-        $entry->tags()->sync($tagIds);
-    }
-
-    private array $parsedTagNames = [];
-
-    private function rebuildDescriptionWithTags(?string $description, ?array $tagNames = null): string
-    {
-        $tags = $tagNames ?? $this->parsedTagNames;
-        $parts = [];
-        if ($description) {
-            $parts[] = $description;
-        }
-        foreach ($tags as $tag) {
-            $parts[] = '#'.$tag;
-        }
-
-        return implode(' ', $parts);
     }
 
     public function render()
