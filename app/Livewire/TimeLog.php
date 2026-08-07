@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesEntryTags;
+use App\Support\Preferences;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -38,8 +39,11 @@ class TimeLog extends Component
             $entry->tags->pluck('name')->toArray()
         );
         $this->editVectorId = $entry->vector_id;
-        $this->editStartedAt = $entry->started_at->format('Y-m-d\TH:i');
-        $this->editStoppedAt = $entry->stopped_at->format('Y-m-d\TH:i');
+
+        // datetime-local inputs are the user's local wall-clock time.
+        $tz = Preferences::current()['timezone'];
+        $this->editStartedAt = $entry->started_at->timezone($tz)->format('Y-m-d\TH:i');
+        $this->editStoppedAt = $entry->stopped_at->timezone($tz)->format('Y-m-d\TH:i');
     }
 
     public function saveFullEdit(): void
@@ -51,11 +55,12 @@ class TimeLog extends Component
 
         $cleanDescription = $this->extractAndSyncTags($this->editDescription);
 
+        $tz = Preferences::current()['timezone'];
         $entry = Auth::user()->timeEntries()->findOrFail($this->editingEntryId);
         $entry->description = $cleanDescription ?: null;
         $entry->vector_id = $this->editVectorId ?: null;
-        $entry->started_at = Carbon::parse($this->editStartedAt);
-        $entry->stopped_at = Carbon::parse($this->editStoppedAt);
+        $entry->started_at = Carbon::parse($this->editStartedAt, $tz)->utc();
+        $entry->stopped_at = Carbon::parse($this->editStoppedAt, $tz)->utc();
         $entry->save();
 
         $this->syncTagsToEntry($entry);
@@ -79,9 +84,14 @@ class TimeLog extends Component
 
     public function render()
     {
+        // "Today" means the user's local day, expressed as UTC boundaries.
+        $tz = Preferences::current()['timezone'];
+        $dayStart = now($tz)->startOfDay()->utc();
+        $dayEnd = now($tz)->endOfDay()->utc();
+
         $entries = Auth::user()->timeEntries()
             ->whereNotNull('stopped_at')
-            ->whereDate('stopped_at', today())
+            ->whereBetween('stopped_at', [$dayStart, $dayEnd])
             ->with(['vector', 'tags'])
             ->orderByDesc('updateAt')
             ->get();

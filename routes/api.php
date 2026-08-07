@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PreferencesController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TimeEntryController;
 use App\Http\Controllers\Api\TogglCompatController;
@@ -14,6 +15,10 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+    // User preferences (locale, timezone, currency, hourly rate)
+    Route::get('preferences', [PreferencesController::class, 'show']);
+    Route::patch('preferences', [PreferencesController::class, 'update']);
+
     // Vectors
     Route::apiResource('vectors', VectorController::class)->parameters(['vectors' => 'id']);
 

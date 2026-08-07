@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Support\Format;
+use App\Support\Preferences;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -26,7 +28,9 @@ class Reports extends Component
 
     private function applyPeriod(): void
     {
-        $now = now();
+        // Period boundaries are computed in the user's timezone so "today" /
+        // "this week" mean their local day, not the server's UTC day.
+        $now = now($this->timezone());
 
         match ($this->period) {
             'today' => $this->setRange($now->copy()->startOfDay(), $now->copy()->endOfDay()),
@@ -43,19 +47,25 @@ class Reports extends Component
         $this->endDate = $end->toDateString();
     }
 
+    private function timezone(): string
+    {
+        return Preferences::current()['timezone'];
+    }
+
     private function buildHeatmap(): array
     {
-        $end = now()->endOfDay();
+        $tz = $this->timezone();
+        $end = now($tz)->endOfDay();
         $start = $end->copy()->subWeeks(52)->startOfWeek();
 
         $entries = Auth::user()->timeEntries()
             ->whereNotNull('stopped_at')
-            ->where('started_at', '>=', $start)
+            ->where('started_at', '>=', $start->copy()->utc())
             ->get();
 
         $dailyHours = [];
         foreach ($entries as $entry) {
-            $dayKey = $entry->started_at->toDateString();
+            $dayKey = $entry->started_at->timezone($tz)->toDateString();
             $seconds = $entry->started_at->diffInSeconds($entry->stopped_at);
             $dailyHours[$dayKey] = ($dailyHours[$dayKey] ?? 0) + $seconds / 3600;
         }
@@ -80,7 +90,7 @@ class Reports extends Component
             if ($month !== $lastMonth) {
                 $monthLabels[] = [
                     'weekIndex' => count($weeks),
-                    'label' => $cursor->format('M'),
+                    'label' => $cursor->translatedFormat('M'),
                 ];
                 $lastMonth = $month;
             }
@@ -89,7 +99,7 @@ class Reports extends Component
                 'date' => $dateStr,
                 'hours' => $hours,
                 'day' => $dayOfWeek,
-                'label' => $cursor->format('M d').': '.($hours > 0 ? round($hours, 1).'h' : __('app.reports_heatmap_no_activity')),
+                'label' => $cursor->translatedFormat('M d').': '.($hours > 0 ? round($hours, 1).'h' : __('app.reports_heatmap_no_activity')),
             ];
 
             $cursor->addDay();
@@ -110,16 +120,20 @@ class Reports extends Component
 
     public function render()
     {
-        $start = Carbon::parse($this->startDate)->startOfDay();
-        $end = Carbon::parse($this->endDate)->endOfDay();
+        $tz = $this->timezone();
+
+        // startDate/endDate are the user's local calendar days; the query needs
+        // their UTC-instant boundaries.
+        $start = Carbon::parse($this->startDate, $tz)->startOfDay();
+        $end = Carbon::parse($this->endDate, $tz)->endOfDay();
 
         $entries = Auth::user()->timeEntries()
             ->whereNotNull('stopped_at')
-            ->whereBetween('started_at', [$start, $end])
+            ->whereBetween('started_at', [$start->copy()->utc(), $end->copy()->utc()])
             ->with('vector')
             ->get();
 
-        // Build daily data keyed by date
+        // Build daily data keyed by local date
         $dailyDates = [];
         $cursor = $start->copy();
         while ($cursor->lte($end)) {
@@ -132,7 +146,7 @@ class Reports extends Component
         $dailyByVector = []; // vectorKey => [date => hours]
 
         foreach ($entries as $entry) {
-            $dayKey = $entry->started_at->toDateString();
+            $dayKey = $entry->started_at->timezone($tz)->toDateString();
             $seconds = $entry->started_at->diffInSeconds($entry->stopped_at);
             $hours = $seconds / 3600;
 
@@ -166,7 +180,7 @@ class Reports extends Component
         }
 
         $dailyStackedChart = [
-            'labels' => array_map(fn ($d) => Carbon::parse($d)->format('M d'), $dailyDates),
+            'labels' => array_map(fn ($d) => Carbon::parse($d)->translatedFormat('M d'), $dailyDates),
             'datasets' => $datasets,
         ];
 
@@ -239,6 +253,12 @@ class Reports extends Component
         $activeDays = collect($dailyTotals)->filter(fn ($h) => $h > 0)->count();
         $avgHoursPerDay = $activeDays > 0 ? round($totalSeconds / 3600 / $activeDays, 1) : 0;
 
+        // Earnings = total hours × the user's hourly rate, in their currency.
+        $hourlyRate = Preferences::current()['hourly_rate'];
+        $earnings = $hourlyRate > 0
+            ? Format::money(($totalSeconds / 3600) * $hourlyRate)
+            : null;
+
         $heatmap = $this->buildHeatmap();
 
         return view('livewire.reports', [
@@ -251,6 +271,7 @@ class Reports extends Component
             'avgHoursPerDay' => $avgHoursPerDay,
             'totalEntries' => $entries->count(),
             'activeDays' => $activeDays,
+            'earnings' => $earnings,
             'heatmap' => $heatmap,
         ]);
     }

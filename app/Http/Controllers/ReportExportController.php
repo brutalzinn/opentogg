@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Format;
+use App\Support\Preferences;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -17,8 +19,10 @@ class ReportExportController extends Controller
             'end' => 'required|date|after_or_equal:start',
         ]);
 
-        $start = Carbon::parse($request->start)->startOfDay();
-        $end = Carbon::parse($request->end)->endOfDay();
+        // The requested range is in the user's local calendar days.
+        $tz = Preferences::current()['timezone'];
+        $start = Carbon::parse($request->start, $tz)->startOfDay()->utc();
+        $end = Carbon::parse($request->end, $tz)->endOfDay()->utc();
 
         return Auth::user()->timeEntries()
             ->whereNotNull('stopped_at')
@@ -53,11 +57,11 @@ class ReportExportController extends Controller
                 $s = $seconds % 60;
 
                 fputcsv($handle, [
-                    $entry->started_at->toDateString(),
+                    Format::date($entry->started_at),
                     $entry->description ?? '',
                     $entry->vector?->name ?? '',
-                    $entry->started_at->format('H:i:s'),
-                    $entry->stopped_at->format('H:i:s'),
+                    Format::time($entry->started_at),
+                    Format::time($entry->stopped_at),
                     sprintf('%02d:%02d:%02d', $h, $m, $s),
                 ]);
             }
@@ -76,12 +80,18 @@ class ReportExportController extends Controller
         $totalHours = floor($totalSeconds / 3600);
         $totalMinutes = floor(($totalSeconds % 3600) / 60);
 
+        $hourlyRate = Preferences::current()['hourly_rate'];
+        $earnings = $hourlyRate > 0
+            ? Format::money(($totalSeconds / 3600) * $hourlyRate)
+            : null;
+
         $pdf = Pdf::loadView('exports.report-pdf', [
             'entries' => $entries,
-            'startDate' => $request->start,
-            'endDate' => $request->end,
+            'startDate' => Format::date(Carbon::parse($request->start, Preferences::current()['timezone'])),
+            'endDate' => Format::date(Carbon::parse($request->end, Preferences::current()['timezone'])),
             'totalHours' => $totalHours,
             'totalMinutes' => $totalMinutes,
+            'earnings' => $earnings,
             'userName' => Auth::user()->name,
         ]);
 

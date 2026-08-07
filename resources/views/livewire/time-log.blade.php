@@ -83,12 +83,8 @@
                                 @endforeach
                             </span>
                         @endif
-                        <span class="text-text-secondary text-sm" x-data x-text="
-                            new Date('{{ $entry->started_at->toISOString() }}').toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})
-                            + ' – ' +
-                            new Date('{{ $entry->stopped_at->toISOString() }}').toLocaleTimeString(navigator.language, {hour: '2-digit', minute: '2-digit'})
-                        ">
-                            {{ $entry->started_at->format('H:i') }} – {{ $entry->stopped_at->format('H:i') }}
+                        <span class="text-text-secondary text-sm">
+                            @ltime($entry->started_at) – @ltime($entry->stopped_at)
                         </span>
                         <span class="text-text-secondary text-sm">
                             @php

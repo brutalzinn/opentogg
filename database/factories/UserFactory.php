@@ -21,6 +21,10 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'google_id' => (string) fake()->unique()->numerify('####################'),
+            'locale' => config('preferences.defaults.locale'),
+            'timezone' => config('preferences.defaults.timezone'),
+            'currency' => config('preferences.defaults.currency'),
+            'hourly_rate' => config('preferences.defaults.hourly_rate'),
         ];
     }
 }

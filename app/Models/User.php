@@ -24,11 +24,20 @@ class User extends Authenticatable
         'external_id',
         'locale',
         'timezone',
+        'currency',
+        'hourly_rate',
     ];
 
     protected $hidden = [
         'remember_token',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'hourly_rate' => 'decimal:2',
+        ];
+    }
 
     public function getRouteKeyName(): string
     {
@@ -40,6 +49,14 @@ class User extends Authenticatable
         static::creating(function (self $model) {
             if (empty($model->external_id)) {
                 $model->external_id = Str::uuid()->toString();
+            }
+
+            // Apply personalization defaults on every creation path
+            // (OAuth, factory, seeder) regardless of DB column defaults.
+            foreach (config('preferences.defaults') as $key => $default) {
+                if ($model->{$key} === null || $model->{$key} === '') {
+                    $model->{$key} = $default;
+                }
             }
         });
     }

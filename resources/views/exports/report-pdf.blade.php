@@ -39,7 +39,7 @@
                     $s = $seconds % 60;
                 @endphp
                 <tr>
-                    <td>{{ $entry->started_at->format('Y-m-d') }}</td>
+                    <td>@ldate($entry->started_at)</td>
                     <td>{{ $entry->description ?? '-' }}</td>
                     <td>
                         @if($entry->vector)
@@ -49,8 +49,8 @@
                             -
                         @endif
                     </td>
-                    <td>{{ $entry->started_at->format('H:i') }}</td>
-                    <td>{{ $entry->stopped_at->format('H:i') }}</td>
+                    <td>@ltime($entry->started_at)</td>
+                    <td>@ltime($entry->stopped_at)</td>
                     <td>{{ sprintf('%02d:%02d:%02d', $h, $m, $s) }}</td>
                 </tr>
             @endforeach
@@ -59,6 +59,9 @@
 
     <div class="total">
         {{ __('app.reports_total_time') }}: {{ $totalHours }}h {{ $totalMinutes }}m
+        @if($earnings !== null)
+            <br>{{ __('app.reports_earnings') }}: {{ $earnings }}
+        @endif
     </div>
 </body>
 </html>

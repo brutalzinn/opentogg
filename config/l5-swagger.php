@@ -15,7 +15,7 @@ return [
                 /*
                  * Route for accessing api documentation interface
                  */
-                'api' => 'api/documentation',
+                'api' => 'docs/api',
             ],
             'paths' => [
                 /*
@@ -62,7 +62,7 @@ return [
             /*
              * Route for Oauth2 authentication callback.
              */
-            'oauth2_callback' => 'api/oauth2-callback',
+            'oauth2_callback' => 'docs/oauth2-callback',
 
             /*
              * Middleware allows to prevent unexpected access to API documentation

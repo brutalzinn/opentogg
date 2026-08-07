@@ -80,6 +80,18 @@ return [
 
     'nav_settings' => 'Configurações',
 
+    'settings_prefs_title' => 'Preferências',
+    'settings_prefs_description' => 'Escolha o idioma, o fuso horário e a moeda usados em todo o aplicativo.',
+    'settings_locale' => 'Idioma',
+    'settings_timezone' => 'Fuso horário',
+    'settings_currency' => 'Moeda',
+    'settings_hourly_rate' => 'Valor por hora',
+    'settings_hourly_rate_hint' => 'Usado para estimar os ganhos nos relatórios. Defina como 0 para ocultar os ganhos.',
+    'settings_prefs_save' => 'Salvar preferências',
+    'settings_prefs_saved' => 'Preferências atualizadas.',
+
+    'reports_earnings' => 'Ganhos',
+
     'api_tokens_title' => 'Tokens de API',
     'api_token_name' => 'Nome do token',
     'api_token_name_placeholder' => 'ex. CLI, Raycast, Alfred',

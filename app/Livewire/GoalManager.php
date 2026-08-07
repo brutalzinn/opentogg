@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Goal;
+use App\Support\Preferences;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -132,12 +133,16 @@ class GoalManager extends Component
             $query->where('vector_id', $goal->vector_id);
         }
 
-        $now = now();
-        match ($goal->period) {
-            'daily' => $query->whereDate('started_at', $now->toDateString()),
-            'weekly' => $query->whereBetween('started_at', [$now->startOfWeek(), $now->copy()->endOfWeek()]),
-            'monthly' => $query->whereMonth('started_at', $now->month)->whereYear('started_at', $now->year),
+        // Goal periods track the user's local day/week/month; stored timestamps
+        // are UTC, so convert the local-period boundaries to UTC instants.
+        $now = now(Preferences::current()['timezone']);
+        [$start, $end] = match ($goal->period) {
+            'daily' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            'weekly' => [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()],
+            'monthly' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
         };
+
+        $query->whereBetween('started_at', [$start->utc(), $end->utc()]);
 
         $totalSeconds = $query->get()->sum(function ($entry) {
             return $entry->started_at->diffInSeconds($entry->stopped_at);

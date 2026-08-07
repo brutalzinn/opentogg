@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Livewire\Concerns\HandlesEntryTags;
+use App\Support\Preferences;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -23,7 +24,8 @@ class ManualEntry extends Component
 
     public function openForm(): void
     {
-        $now = now();
+        // Prefill in the user's local wall-clock time.
+        $now = now(Preferences::current()['timezone']);
         $this->startedAt = $now->copy()->startOfHour()->format('Y-m-d\TH:i');
         $this->stoppedAt = $now->copy()->startOfHour()->addHour()->format('Y-m-d\TH:i');
         $this->description = '';
@@ -40,11 +42,13 @@ class ManualEntry extends Component
 
         $cleanDescription = $this->extractAndSyncTags($this->description);
 
+        // Inputs are the user's local wall-clock time; store as UTC.
+        $tz = Preferences::current()['timezone'];
         $entry = Auth::user()->timeEntries()->create([
             'description' => $cleanDescription ?: null,
             'vector_id' => $this->vectorId ?: null,
-            'started_at' => Carbon::parse($this->startedAt),
-            'stopped_at' => Carbon::parse($this->stoppedAt),
+            'started_at' => Carbon::parse($this->startedAt, $tz)->utc(),
+            'stopped_at' => Carbon::parse($this->stoppedAt, $tz)->utc(),
         ]);
 
         $this->syncTagsToEntry($entry);

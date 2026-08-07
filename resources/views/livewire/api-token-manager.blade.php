@@ -53,6 +53,6 @@
     @endforelse
 
     <div class="bg-surface-raised p-3 sm:p-4 mt-4 rounded-xl text-center">
-        <a href="/api/documentation" target="_blank" class="text-accent hover:text-accent-hover [touch-action:manipulation]">{{ __('app.api_docs_link') }}</a>
+        <a href="/docs/api" target="_blank" rel="noopener noreferrer" class="text-accent hover:text-accent-hover [touch-action:manipulation]">{{ __('app.api_docs_link') }}</a>
     </div>
 </div>

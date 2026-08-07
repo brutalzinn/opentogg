@@ -148,6 +148,12 @@
             <div class="text-2xl sm:text-3xl font-mono tabular-nums text-accent">{{ $avgHoursPerDay }}h</div>
             <div class="text-text-secondary text-xs sm:text-sm mt-1">{{ __('app.reports_avg_per_day') }}</div>
         </div>
+        @if($earnings !== null)
+            <div class="bg-surface-raised p-3 sm:p-4 rounded-xl text-center col-span-2">
+                <div class="text-2xl sm:text-3xl font-mono tabular-nums text-success">{{ $earnings }}</div>
+                <div class="text-text-secondary text-xs sm:text-sm mt-1">{{ __('app.reports_earnings') }}</div>
+            </div>
+        @endif
     </div>
 
     {{-- Daily hours stacked bar chart (colored by vector) --}}

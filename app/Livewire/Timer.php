@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Jobs\DispatchGoalWebhook;
 use App\Livewire\Concerns\HandlesEntryTags;
 use App\Models\Goal;
+use App\Support\Preferences;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -157,24 +158,30 @@ class Timer extends Component
             $query->where('vector_id', $goal->vector_id);
         }
 
-        $now = now();
-        match ($goal->period) {
-            'daily' => $query->whereDate('started_at', $now->toDateString()),
-            'weekly' => $query->whereBetween('started_at', [$now->startOfWeek(), $now->copy()->endOfWeek()]),
-            'monthly' => $query->whereMonth('started_at', $now->month)->whereYear('started_at', $now->year),
+        // Goal periods track the user's local day/week/month; stored timestamps
+        // are UTC, so convert the local-period boundaries to UTC instants.
+        $now = now(Preferences::current()['timezone']);
+        [$start, $end] = match ($goal->period) {
+            'daily' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            'weekly' => [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()],
+            'monthly' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
         };
+
+        $query->whereBetween('started_at', [$start->utc(), $end->utc()]);
 
         return $query->get()->sum(fn ($entry) => $entry->started_at->diffInSeconds($entry->stopped_at)) / 3600;
     }
 
     private function isWithinCurrentPeriod(Carbon $date, string $period): bool
     {
-        $now = now();
+        $tz = Preferences::current()['timezone'];
+        $now = now($tz);
+        $local = $date->copy()->timezone($tz);
 
         return match ($period) {
-            'daily' => $date->isSameDay($now),
-            'weekly' => $date->isSameWeek($now),
-            'monthly' => $date->isSameMonth($now),
+            'daily' => $local->isSameDay($now),
+            'weekly' => $local->isSameWeek($now),
+            'monthly' => $local->isSameMonth($now),
         };
     }
 

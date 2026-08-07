@@ -80,6 +80,18 @@ return [
 
     'nav_settings' => 'Settings',
 
+    'settings_prefs_title' => 'Preferences',
+    'settings_prefs_description' => 'Choose the language, timezone, and currency used across the app.',
+    'settings_locale' => 'Language',
+    'settings_timezone' => 'Timezone',
+    'settings_currency' => 'Currency',
+    'settings_hourly_rate' => 'Hourly rate',
+    'settings_hourly_rate_hint' => 'Used to estimate earnings in reports. Set to 0 to hide earnings.',
+    'settings_prefs_save' => 'Save preferences',
+    'settings_prefs_saved' => 'Preferences updated.',
+
+    'reports_earnings' => 'Earnings',
+
     'api_tokens_title' => 'API Tokens',
     'api_token_name' => 'Token name',
     'api_token_name_placeholder' => 'e.g. CLI, Raycast, Alfred',
