@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 class TimeEntryController extends Controller
@@ -84,6 +86,8 @@ class TimeEntryController extends Controller
                     new OA\Property(property: 'description', type: 'string', nullable: true),
                     new OA\Property(property: 'vector_id', type: 'string', format: 'uuid', description: 'Vector external_id', nullable: true),
                     new OA\Property(property: 'tag_ids', type: 'array', items: new OA\Items(type: 'string', format: 'uuid'), description: 'Tag external_ids'),
+                    new OA\Property(property: 'started_at', type: 'string', format: 'date-time'),
+                    new OA\Property(property: 'stopped_at', type: 'string', format: 'date-time', nullable: true),
                 ]
             )
         ),
@@ -101,7 +105,21 @@ class TimeEntryController extends Controller
             'vector_id' => 'nullable|string',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'string',
+            'started_at' => 'sometimes|date',
+            'stopped_at' => 'sometimes|nullable|date',
         ]);
+
+        $startedAt = isset($data['started_at']) ? Carbon::parse($data['started_at']) : $entry->started_at;
+        $stoppedAt = array_key_exists('stopped_at', $data)
+            ? ($data['stopped_at'] ? Carbon::parse($data['stopped_at']) : null)
+            : $entry->stopped_at;
+
+        if ($stoppedAt && $stoppedAt->lt($startedAt)) {
+            throw ValidationException::withMessages(['stopped_at' => 'The stopped at must be after started at.']);
+        }
+
+        $entry->started_at = $startedAt;
+        $entry->stopped_at = $stoppedAt;
 
         if (array_key_exists('description', $data)) {
             $entry->description = $data['description'];
